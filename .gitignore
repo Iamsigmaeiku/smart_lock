@@ -1,0 +1,16 @@
+# PlatformIO
+.pio/
+.vscode/
+.pioenvs/
+.piolibdeps/
+
+# 編譯產物
+*.o
+*.elf
+*.bin
+
+# macOS
+.DS_Store
+
+# 其他
+*.log
