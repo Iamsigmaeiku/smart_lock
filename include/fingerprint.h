@@ -6,6 +6,7 @@
 
 class Adafruit_Fingerprint;
 // AS608 指紋傳感器控制類
+// 接腳: TX->GPIO16(RX2), RX->GPIO17(TX2)
 class Fingerprint {
 public:
   // 初始化

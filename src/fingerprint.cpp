@@ -1,5 +1,6 @@
 #include "fingerprint.h"
 #include <Adafruit_Fingerprint.h>
+#include "config.h"
 
 
 
@@ -12,6 +13,9 @@ void Fingerprint::init() {
   tx = 17;
   rx = 16;
   fpSerial->begin(baudRate, SERIAL_8N1, rx, tx);
+  // TODO: 初始化 AS608 指紋傳感器
+  // 使用 Serial2 (RX=16, TX=17)
+  // 設定 baud rate (通常是 57600)
   Serial.println("初始化指紋傳感器...");
   delay(100);
   finger = new Adafruit_Fingerprint(fpSerial);
