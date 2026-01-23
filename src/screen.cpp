@@ -1,8 +1,10 @@
 #include "screen.h"
+#include "config.h"
 
 void Screen::init() {
   // TODO: 初始化 ILI9341 螢幕
-  // 設定 SPI 接腳
+  // 使用 SPI 介面和 config.h 定義的接腳
+  // CS=5, RST=22, DC=21, MOSI=23, SCK=18, MISO=19
   Serial.println("初始化螢幕...");
 }
 

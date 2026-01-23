@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 // ILI9341 螢幕控制類
+// 接腳: CS->GPIO5, RST->GPIO22, DC->GPIO21, MOSI->GPIO23, SCK->GPIO18, MISO->GPIO19
 class Screen {
 public:
   // 初始化
