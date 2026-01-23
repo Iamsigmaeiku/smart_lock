@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 // SG90 舵機控制類
+// 接腳: VCC->5V, GND->GND, Signal->GPIO13
 class Motor {
 public:
   // 初始化

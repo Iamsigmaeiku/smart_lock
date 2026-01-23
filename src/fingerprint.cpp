@@ -1,8 +1,10 @@
 #include "fingerprint.h"
+#include "config.h"
 
 void Fingerprint::init() {
   // TODO: 初始化 AS608 指紋傳感器
-  // 設定串口連接
+  // 使用 Serial2 (RX=16, TX=17)
+  // 設定 baud rate (通常是 57600)
   Serial.println("初始化指紋傳感器...");
 }
 
