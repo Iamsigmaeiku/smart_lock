@@ -1,10 +1,18 @@
 #include "wifi_comm.h"
 #include "config.h"
+#define WIFI_SSID "COMMMM"
+#define WIFI_PASSWORD "8765432100"
+#include "WiFiMulti.h"
 
+WiFiMulti wifimulti
 void WifiComm::init() {
-  // TODO: 初始化 ESP8266 通訊
-  // 需要設定 UART 串口和 AT 指令
+  Serial.begin(115200);
+  wifimulti.addAP(WIFI_SSID,WIFI_PASSWORD);
   Serial.println("初始化 WiFi 通訊模組...");
+  while(wifimulti.run() != WL_CONNECTED){
+    delay(100);
+  }
+  Serial.println("connected");
 }
 
 bool WifiComm::connectWiFi(const char* ssid, const char* password) {
