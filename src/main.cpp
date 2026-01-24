@@ -13,7 +13,7 @@ Screen display;
 Motor doorMotor;
 RFID rfidReader;
 HuskyLens aiCamera;
-WifiComm wifiModule;
+wifi_comm wifiModule;
 
 // 系統狀態
 enum SystemState {
@@ -43,7 +43,7 @@ void setup() {
   Serial.println("================================");
   Serial.println("智慧門鎖系統啟動中...");
   Serial.println("================================");
-  
+
   // 初始化硬體模組
   fingerSensor.init();
   display.init();
@@ -51,15 +51,15 @@ void setup() {
   rfidReader.init();
   aiCamera.init();
   wifiModule.init();
-  
+
   // 顯示歡迎畫面
   display.showWelcome();
   delay(2000);
-  
+
   // 進入等待狀態
   currentState = WAITING_INPUT;
   display.showWaitingForFinger();
-  
+
   Serial.println("系統準備就緒！");
 }
 
@@ -73,7 +73,7 @@ void loop() {
         lastAuthMethod = FINGERPRINT;
         currentState = VERIFYING;
       }
-      
+
       // TODO: 檢測 RFID 卡片
       if (rfidReader.detectCard()) {
         Serial.println("檢測到 RFID 卡片！");
@@ -88,11 +88,11 @@ void loop() {
         currentState = VERIFYING;
       }
       break;
-      
+
     case VERIFYING: {
       // TODO: 根據驗證方式進行驗證
       bool verified = false;
-      
+
       if (lastAuthMethod == FINGERPRINT) {
         verified = fingerSensor.verifyFinger();
       } else if (lastAuthMethod == RFID_CARD) {
@@ -100,12 +100,12 @@ void loop() {
       } else if (lastAuthMethod == FACE_RECOGNITION) {
         verified = aiCamera.verifyFace();
       }
-      
+
       if (verified) {
         Serial.println("驗證成功！");
         display.showSuccess();
         currentState = UNLOCKING;
-        
+
         // TODO: 可以在這裡發送通知到伺服器
         // wifiModule.sendData("門鎖已開啟");
       } else {
@@ -117,21 +117,21 @@ void loop() {
       }
       break;
     }
-      
+
     case UNLOCKING:
       // TODO: 開鎖
       doorMotor.unlock();
       delay(UNLOCK_DURATION); // 保持開鎖狀態
-      
+
       // TODO: 自動上鎖
       doorMotor.lock();
       currentState = WAITING_INPUT;
       display.showWaitingForFinger();
       break;
-      
+
     default:
       break;
   }
-  
+
   delay(100);
 }
