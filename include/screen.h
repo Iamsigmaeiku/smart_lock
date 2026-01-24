@@ -23,7 +23,12 @@ public:
   void showFailed();
 
 private:
-  // TODO: 添加必要的成員變數
+  void sendCommand(uint8_t cmd);
+  void sendData(uint8_t data);
+  void setAddress(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+  void fillScreen(uint16_t color);
+  void fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+  void drawText(uint16_t x, uint16_t y, const char* text, uint16_t color, uint8_t size);
 };
 
 #endif
