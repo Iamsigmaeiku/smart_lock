@@ -4,6 +4,7 @@
 #include "screen.h"
 #include "motor.h"
 #include "rfid.h"
+#include "huskylens.h"
 #include "wifi_comm.h"
 uint32_t unlockStartMs = 0;
 bool isUnlocking = false;
@@ -12,6 +13,7 @@ Fingerprint fingerSensor;
 Screen display;
 Motor doorMotor;
 RFID rfidReader;
+HuskyLens aiCamera;
 wifi_comm wifiModule;
 
 // 系統狀態
@@ -29,7 +31,8 @@ SystemState currentState = IDLE;
 enum AuthMethod {
   NONE,
   FINGERPRINT,
-  RFID_CARD
+  RFID_CARD,
+  FACE_RECOGNITION
 };
 
 AuthMethod lastAuthMethod = NONE;
@@ -47,6 +50,7 @@ void setup() {
   display.init();
   doorMotor.init(MOTOR_PIN);
   rfidReader.init();
+  aiCamera.init();
   wifiModule.init();
 
   // 顯示歡迎畫面
@@ -80,6 +84,13 @@ void loop() {
         lastAuthMethod = RFID_CARD;
         currentState = VERIFYING;
       }
+      
+      // TODO: 檢測人臉
+      if (aiCamera.detectFace()) {
+        Serial.println("檢測到人臉！");
+        lastAuthMethod = FACE_RECOGNITION;
+        currentState = VERIFYING;
+      }
       break;
 
     case VERIFYING: {
@@ -89,6 +100,8 @@ void loop() {
         verified = fingerSensor.verifyFinger();
       } else if (lastAuthMethod == RFID_CARD) {
         verified = rfidReader.verifyCard();
+      } else if (lastAuthMethod == FACE_RECOGNITION) {
+        verified = aiCamera.verifyFace();
       }
 
       if (verified) {
