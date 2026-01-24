@@ -22,11 +22,6 @@ void Fingerprint::init() {
     Serial.println("AS608 connect failed!");
     initialized = false;
   }
-  if(finger->verifyPassword()) {
-    Serial.println("sensor found & password correct.");
-  } else {
-    Serial.println("sensor not found or password incorrect.");
-  }
 }
 
 

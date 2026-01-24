@@ -11,13 +11,13 @@ void Motor::init(uint8_t pin) {
   delay(1000);
   myservo.detach();
   Serial.println("初始化舵機...");
- 
+
 }
 
 void Motor::unlock() {
   myservo.attach(_pin);
   myservo.write(0);
-  delay(1000);
+  delay(50);
   //myservo.detach();如果要省電再把註解用掉
   Serial.println("開鎖");
 }

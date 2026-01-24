@@ -5,7 +5,8 @@
 #include "motor.h"
 #include "rfid.h"
 #include "wifi_comm.h"
-
+uint32_t unlockStartMs = 0;
+bool isUnlocking = false;
 // 硬體物件
 Fingerprint fingerSensor;
 Screen display;
@@ -61,16 +62,19 @@ void setup() {
 
 // 主程式循環
 void loop() {
+  // 如果你的 wifi_comm 是 non-blocking 設計，建議每圈都呼叫一次
+  wifiModule.update();
+
   switch (currentState) {
     case WAITING_INPUT:
-      // TODO: 檢測指紋
+      // 檢測指紋
       if (fingerSensor.detectFinger()) {
         Serial.println("檢測到指紋！");
         lastAuthMethod = FINGERPRINT;
         currentState = VERIFYING;
       }
 
-      // TODO: 檢測 RFID 卡片
+      // 檢測 RFID 卡片
       if (rfidReader.detectCard()) {
         Serial.println("檢測到 RFID 卡片！");
         lastAuthMethod = RFID_CARD;
@@ -79,7 +83,6 @@ void loop() {
       break;
 
     case VERIFYING: {
-      // TODO: 根據驗證方式進行驗證
       bool verified = false;
 
       if (lastAuthMethod == FINGERPRINT) {
@@ -91,14 +94,18 @@ void loop() {
       if (verified) {
         Serial.println("驗證成功！");
         display.showSuccess();
-        currentState = UNLOCKING;
 
-        // TODO: 可以在這裡發送通知到伺服器
-        // wifiModule.sendData("門鎖已開啟");
+        // 立刻開鎖（不等下一圈）
+        doorMotor.unlock();
+        unlockStartMs = millis();
+        isUnlocking = true;
+        currentState = UNLOCKING;
       } else {
         Serial.println("驗證失敗！");
         display.showFailed();
         delay(2000);
+
+        lastAuthMethod = NONE;
         currentState = WAITING_INPUT;
         display.showWaitingForFinger();
       }
@@ -106,19 +113,20 @@ void loop() {
     }
 
     case UNLOCKING:
-      // TODO: 開鎖
-      doorMotor.unlock();
-      delay(UNLOCK_DURATION); // 保持開鎖狀態
 
-      // TODO: 自動上鎖
-      doorMotor.lock();
-      currentState = WAITING_INPUT;
-      display.showWaitingForFinger();
+      if (isUnlocking && (millis() - unlockStartMs >= UNLOCK_DURATION)) {
+        doorMotor.lock();
+        isUnlocking = false;
+
+        lastAuthMethod = NONE;
+        currentState = WAITING_INPUT;
+        display.showWaitingForFinger();
+      }
       break;
 
+    case IDLE:
+    case LOCKED:
     default:
       break;
   }
-
-  delay(100);
 }
