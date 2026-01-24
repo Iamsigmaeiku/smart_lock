@@ -24,6 +24,11 @@
 #define RFID_CS   4   // Chip Select (SDA)
 #define RFID_RST  27  // Reset
 
+// HUSKYLENS AI 辨識鏡頭接腳 (I2C)
+#define HUSKYLENS_SDA 21  // I2C 資料線
+#define HUSKYLENS_SCL 22  // I2C 時鐘線
+#define HUSKYLENS_I2C_ADDR 0x32  // I2C 地址（預設）
+
 // ========================================
 // 系統設定
 // ========================================
