@@ -2,28 +2,38 @@
 #define WIFI_COMM_H
 
 #include <Arduino.h>
+#include <WiFi.h>
 
-// ESP8266 WiFi 通訊模組控制類
-class WifiComm {
+class wifi_comm {
 public:
-  // 初始化
-  void init();
-  
-  // 連接 WiFi
-  bool connectWiFi(const char* ssid, const char* password);
-  
-  // 發送資料到伺服器
-  bool sendData(const char* data);
-  
-  // 接收伺服器資料
-  bool receiveData(char* buffer, size_t bufferSize);
-  
-  // 檢查連線狀態
-  bool isConnected();
+    enum State {
+        IDLE,
+        CONNECTING,
+        CONNECTED,
+        TIMEOUT
+    };
+
+    void init(const char* ssid = "COMMMM",
+              const char* password = "8765432100",
+              uint32_t timeout_ms = 10000,
+              uint32_t retry_interval_ms = 5000);
+
+    void update();
+
+    bool isConnected() const;
+    State state() const;
 
 private:
-  // TODO: 添加必要的成員變數
-  // 例如: Serial 物件、連線狀態等
+    const char* _ssid = nullptr;
+    const char* _password = nullptr;
+
+    uint32_t _timeout_ms = 10000;
+    uint32_t _retry_interval_ms = 5000;
+
+    uint32_t _start_ms = 0;
+    uint32_t _next_retry_ms = 0;
+
+    State _state = IDLE;
 };
 
 #endif

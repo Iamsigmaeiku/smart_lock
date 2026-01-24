@@ -1,37 +1,74 @@
 #include "wifi_comm.h"
-#include "config.h"
-#define WIFI_SSID "COMMMM"
-#define WIFI_PASSWORD "8765432100"
-#include "WiFiMulti.h"
 
-WiFiMulti wifimulti
-void WifiComm::init() {
-  Serial.begin(115200);
-  wifimulti.addAP(WIFI_SSID,WIFI_PASSWORD);
-  Serial.println("初始化 WiFi 通訊模組...");
-  while(wifimulti.run() != WL_CONNECTED){
-    delay(100);
-  }
-  Serial.println("connected");
+void wifi_comm::init(const char* ssid,
+                     const char* password,
+                     uint32_t timeout_ms,
+                     uint32_t retry_interval_ms)
+{
+    _ssid = ssid;
+    _password = password;
+    _timeout_ms = timeout_ms;
+    _retry_interval_ms = retry_interval_ms;
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(_ssid, _password);
+
+    _start_ms = millis();
+    _state = CONNECTING;
+
+    Serial.print("[WiFi] Connecting to ");
+    Serial.println(_ssid);
 }
 
-bool WifiComm::connectWiFi(const char* ssid, const char* password) {
-  // TODO: 連接到指定的 WiFi
-  // 使用 AT 指令控制 ESP8266
-  return false;
+void wifi_comm::update()
+{
+    // 已連線：監控是否掉線（非阻塞）
+    if (_state == CONNECTED) {
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println("[WiFi] Disconnected");
+            _state = IDLE;
+            _next_retry_ms = millis() + _retry_interval_ms;
+        }
+        return;
+    }
+
+    // 連線中：檢查成功 / 超時（非阻塞）
+    if (_state == CONNECTING) {
+        if (WiFi.status() == WL_CONNECTED) {
+            _state = CONNECTED;
+            Serial.print("[WiFi] Connected, IP: ");
+            Serial.println(WiFi.localIP());
+            return;
+        }
+
+        if (millis() - _start_ms >= _timeout_ms) {
+            _state = TIMEOUT;
+            _next_retry_ms = millis() + _retry_interval_ms;
+            Serial.println("[WiFi] Connect timeout");
+            return;
+        }
+
+        return; // 繼續等待，不阻塞
+    }
+
+    // IDLE / TIMEOUT：到時間就重試（非阻塞）
+    if ((_state == IDLE || _state == TIMEOUT) && _ssid && _password) {
+        if (millis() >= _next_retry_ms) {
+            Serial.println("[WiFi] Retry connecting...");
+            WiFi.disconnect(true);
+            WiFi.begin(_ssid, _password);
+            _start_ms = millis();
+            _state = CONNECTING;
+        }
+    }
 }
 
-bool WifiComm::sendData(const char* data) {
-  // TODO: 發送資料到伺服器
-  return false;
+bool wifi_comm::isConnected() const
+{
+    return (_state == CONNECTED) && (WiFi.status() == WL_CONNECTED);
 }
 
-bool WifiComm::receiveData(char* buffer, size_t bufferSize) {
-  // TODO: 接收伺服器傳來的資料
-  return false;
-}
-
-bool WifiComm::isConnected() {
-  // TODO: 檢查 WiFi 連線狀態
-  return false;
+wifi_comm::State wifi_comm::state() const
+{
+    return _state;
 }
