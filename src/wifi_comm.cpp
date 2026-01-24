@@ -2,14 +2,15 @@
 #include "config.h"
 
 void WifiComm::init() {
-  // TODO: 初始化 ESP8266 通訊
-  // 需要設定 UART 串口和 AT 指令
+  // TODO: 初始化 ESP32 內建 WiFi
+  // WiFi.mode(WIFI_STA);
   Serial.println("初始化 WiFi 通訊模組...");
 }
 
 bool WifiComm::connectWiFi(const char* ssid, const char* password) {
   // TODO: 連接到指定的 WiFi
-  // 使用 AT 指令控制 ESP8266
+  // WiFi.begin(ssid, password);
+  // 等待連線成功
   return false;
 }
 
