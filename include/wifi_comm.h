@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-// ESP8266 WiFi 通訊模組控制類
+// ESP32 內建 WiFi 通訊控制類
 class WifiComm {
 public:
   // 初始化
