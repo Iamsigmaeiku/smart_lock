@@ -76,7 +76,7 @@ pio device monitor
 ### AS608 指紋傳感器
 | 接腳 | ESP32 | 說明 |
 |------|-------|------|
-| VCC | 3.3V | AS608 核心電壓 3.3V |
+| VCC | 5V | AS608 工作電壓 5V（接 ESP32 VIN 或外部 5V）|
 | GND | GND | 接地 |
 | TX | GPIO 16 (RX2) | 模組發送 → MCU 接收 |
 | RX | GPIO 17 (TX2) | 模組接收 ← MCU 發送 |
@@ -109,7 +109,7 @@ pio device monitor
 ### HUSKYLENS Pro AI 辨識鏡頭
 | 接腳 | ESP32 | 說明 |
 |------|-------|------|
-| VCC | 3.3V 或 5V | HUSKYLENS 支援 3.3V-5V 電源 |
+| VCC | 5V | HUSKYLENS 支援 3.3V-5V 電源 |
 | GND | GND | 必須與 ESP32 共地 |
 | SDA | GPIO 21 | I2C 資料線（建議使用 I2C 模式）|
 | SCL | GPIO 22 | I2C 時鐘線 |
