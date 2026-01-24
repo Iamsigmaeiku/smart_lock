@@ -21,14 +21,8 @@
 #define TFT_MISO 19   // Master In Slave Out (選用)
 
 // RFID RC522 接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
-// TODO: 你需要自己查資料決定 RC522 的接腳
-#define RFID_CS   -1  // Chip Select (自己決定)
-#define RFID_RST  -1  // Reset (自己決定)
-
-// ESP8266 通訊接腳 (UART)
-// TODO: 你需要自己決定用哪個 UART
-#define ESP8266_RX -1  // 自己決定
-#define ESP8266_TX -1  // 自己決定
+#define RFID_CS   4   // Chip Select (SDA)
+#define RFID_RST  27  // Reset
 
 // ========================================
 // 系統設定

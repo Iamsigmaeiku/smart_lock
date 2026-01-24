@@ -8,7 +8,6 @@
 - **RFID 讀卡機**: RC522 (13.56MHz)
 - **顯示螢幕**: ILI9341 (2.4" TFT LCD)
 - **舵機**: SG90 (控制門鎖機構)
-- **WiFi 模組**: ESP8266 (選用，用於網路通訊)
 
 ## 專案結構
 ```
@@ -21,7 +20,7 @@ smart_lock/
 │   ├── rfid.cpp        # RC522 RFID 讀卡機驅動
 │   ├── screen.cpp      # ILI9341 螢幕顯示驅動
 │   ├── motor.cpp       # SG90 舵機控制
-│   └── wifi_comm.cpp   # ESP8266 WiFi 通訊
+│   └── wifi_comm.cpp   # ESP32 WiFi 通訊
 ├── include/            # 標頭檔
 │   ├── config.h        # 系統配置與接腳定義
 │   ├── fingerprint.h   # 指紋傳感器介面
@@ -94,23 +93,14 @@ pio device monitor
 ### RFID RC522 (SPI - 與螢幕共用部分接腳)
 | 接腳 | ESP32 | 說明 |
 |------|-------|------|
-| VCC | 3.3V | 電源 |
-| GND | GND | 接地 |
-| CS | 待定 | Chip Select（自行決定）|
-| RST | 待定 | Reset（自行決定）|
-| MOSI | GPIO 23 | 與螢幕共用 |
-| MISO | GPIO 19 | 與螢幕共用 |
-| SCK | GPIO 18 | 與螢幕共用 |
-
-### ESP8266 WiFi 模組 (UART)
-| 接腳 | ESP32 | 說明 |
-|------|-------|------|
-| VCC | 3.3V | 電源 |
-| GND | GND | 接地 |
-| TX | 待定 | 模組發送（自行決定使用哪個 UART）|
-| RX | 待定 | 模組接收（自行決定使用哪個 UART）|
-
-> **提示**: RFID 和 ESP8266 的接腳需要你自己查資料後在 `config.h` 中設定
+| VCC | 3.3V | ⚠️ 嚴禁接 5V，否則會燒毀 RC522 |
+| GND | GND | 必須與 ESP32 共地 |
+| RST | GPIO 27 | 重置腳。選用 27 是因為它通常在開發板上離 SPI 介面較近，方便走線 |
+| IRQ | 不接 | 中斷腳。在輪詢 (Polling) 模式下通常不需要，懸空即可 |
+| MISO | GPIO 19 | Master In Slave Out (與螢幕並聯) |
+| MOSI | GPIO 23 | Master Out Slave In (與螢幕並聯) |
+| SCK | GPIO 18 | Clock (與螢幕並聯) |
+| SDA (SS) | GPIO 4 | Chip Select。這是關鍵。螢幕用 GPIO 5，所以我們分配 GPIO 4 給 RFID |
 
 ## 功能模組
 
@@ -125,7 +115,7 @@ pio device monitor
 - [ ] RC522 RFID 讀寫功能
 - [ ] ILI9341 螢幕顯示與 UI
 - [ ] SG90 舵機角度控制優化
-- [ ] ESP8266 AT 指令通訊
+- [ ] ESP32 WiFi 連線與遠端通訊
 - [ ] 使用者資料庫（指紋 ID、卡片 UID）
 - [ ] 系統整合測試
 
@@ -164,5 +154,5 @@ rm -rf .cache
 - **AS608**: 查詢通訊協定手冊
 - **RC522**: MFRC522 函式庫文件
 - **ILI9341**: Adafruit_ILI9341 或 TFT_eSPI 函式庫
-- **ESP8266**: AT 指令集
+- **ESP32 WiFi**: WiFi.h 函式庫（ESP32 內建）
 - **ESP32Servo**: 已安裝，參考範例程式
