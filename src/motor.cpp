@@ -11,7 +11,7 @@ void Motor::init(uint8_t pin) {
   delay(1000);
   myservo.detach();
   Serial.println("初始化舵機...");
- 
+
 }
 
 void Motor::unlock() {
