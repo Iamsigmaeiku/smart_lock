@@ -169,13 +169,13 @@ pio run -t upload
 |------|-------|------|
 | VCC | 5V | HUSKYLENS 支援 3.3V-5V 電源 |
 | GND | GND | 必須與 ESP32 共地 |
-| SDA | GPIO 21 | I2C 資料線（建議使用 I2C 模式）|
-| SCL | GPIO 22 | I2C 時鐘線 |
+| SDA | GPIO 25 | I2C 資料線（建議使用 I2C 模式）|
+| SCL | GPIO 26 | I2C 時鐘線 |
 
 > **通訊模式選擇**:
 > - **建議使用 I2C 模式**（預設地址 0x32），因為 UART2 已被指紋模組佔用
 > - 如果要用 UART 模式，可使用 UART1 或軟體串口，並在 HUSKYLENS 設定中切換模式
-> - I2C 腳位與螢幕的 DC/RST 腳位相同號碼但功能不同，不會衝突
+> - I2C 腳位使用 GPIO 25/26，避免與螢幕的 DC/RST (GPIO 21/22) 衝突
 
 ## 功能模組
 
@@ -322,6 +322,4 @@ rm -rf .cache
 
 ---
 
-**開發環境**: Cursor + PlatformIO  
-**最後更新**: 2026-01-25  
-**狀態**: ✅ 可編譯運行
+
