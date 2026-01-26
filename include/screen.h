@@ -2,28 +2,19 @@
 #define SCREEN_H
 
 #include <Arduino.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
+#include "config.h"
 
-// ILI9341 螢幕控制類（使用 Adafruit_ILI9341 庫）
-// 接腳: CS->GPIO5, RST->GPIO22, DC->GPIO21, MOSI->GPIO23, SCK->GPIO18, MISO->GPIO19
-// 觸控: T_CS->GPIO15, T_IRQ->GPIO2
 class Screen {
 public:
-  // 螢幕初始化
+  Screen();
   void init();
-  
-  // 觸控初始化
-  void initTouch();
-  
-  // 顯示歡迎畫面
+
   void showWelcome();
-  
-  // 顯示等待指紋
   void showWaitingForFinger();
-  
-  // 顯示驗證成功
   void showSuccess();
-  
-  // 顯示驗證失敗
   void showFailed();
   
   // 觸控相關
@@ -41,18 +32,7 @@ public:
   void showCalibrationMarkers();                      // 顯示校準標記點
 
 private:
-  // UI佈局常數
-  struct KeypadLayout {
-    static const uint16_t START_X = 40;
-    static const uint16_t START_Y = 80;
-    static const uint16_t KEY_W = 70;
-    static const uint16_t KEY_H = 50;
-    static const uint16_t SPACING = 10;
-  };
-  
-  // 繪製單個按鍵
-  void drawKey(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
-               String label, uint16_t color, bool pressed = false);
+  Adafruit_ILI9341 tft;
 };
 
 #endif

@@ -1,88 +1,80 @@
 #include "screen.h"
 #include "config.h"
-#include <Adafruit_ILI9341.h>
-#include <XPT2046_Touchscreen.h>
-#include <SPI.h>
 
-// 創建 Adafruit_ILI9341 對象
-Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
-
-// 創建 XPT2046 觸控對象
-XPT2046_Touchscreen touch(TOUCH_CS, TOUCH_IRQ);
-
-void Screen::init() {
-  // TODO: 初始化螢幕
+// ILI9341 沒有無參數建構子，所以必須用初始化列表建構
+Screen::Screen()
+  : tft(TFT_CS, TFT_DC, TFT_RST) {
 }
 
-void Screen::initTouch() {
-  // TODO: 初始化觸控
+void Screen::init() {
+  tft.begin();
+  tft.setRotation(1);      // 依你的螢幕方向調整
+  tft.fillScreen(0x0000);
+  tft.setTextWrap(false);
 }
 
 void Screen::showWelcome() {
-  // TODO: 顯示歡迎畫面
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(60, 60);
+  tft.print("Welcome");
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  tft.setCursor(30, 100);
+  tft.print("SMART LOCK");
+
+  tft.setTextColor(0x8410);
+  tft.setTextSize(2);
+  tft.setCursor(40, 170);
+  tft.print("Touch sensor");
 }
 
 void Screen::showWaitingForFinger() {
-  // TODO: 顯示等待指紋
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(20, 60);
+  tft.print("Please verify");
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  tft.setCursor(20, 110);
+  tft.print("FINGER");
+
+  tft.setTextColor(0x8410);
+  tft.setTextSize(2);
+  tft.setCursor(20, 180);
+  tft.print("Touch sensor...");
 }
 
 void Screen::showSuccess() {
-  // TODO: 顯示成功畫面
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  tft.setCursor(40, 100);
+  tft.print("SUCCESS");
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(30, 160);
+  tft.print("Door unlocked");
 }
 
 void Screen::showFailed() {
-  // TODO: 顯示失敗畫面
-}
+  tft.fillScreen(0x0000);
 
-// ============================================
-// 觸控功能實現
-// ============================================
+  tft.setTextColor(0xF800);   // 紅色（RGB565）
+  tft.setTextSize(3);
+  tft.setCursor(55, 100);
+  tft.print("FAILED");
 
-bool Screen::isTouched() {
-  // TODO: 檢查是否被觸控
-  return false;
-}
-
-void Screen::getTouchPoint(int16_t &x, int16_t &y) {
-  // TODO: 取得觸控座標
-  x = -1;
-  y = -1;
-}
-
-void Screen::printTouchDebug() {
-  // TODO: 印出觸控除錯資訊
-}
-
-// ============================================
-// UI功能實現
-// ============================================
-
-void Screen::showMainMenu() {
-  // TODO: 顯示主選單
-}
-
-void Screen::showPasswordInput() {
-  // TODO: 顯示密碼輸入介面
-}
-
-void Screen::updatePasswordDisplay(String maskedPW) {
-  // TODO: 更新密碼顯示
-}
-
-int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
-  // TODO: 判斷按了哪個鍵
-  return -1;
-}
-
-void Screen::showCalibrationMarkers() {
-  // TODO: 顯示校準標記
-}
-
-// ============================================
-// 私有輔助函數
-// ============================================
-
-void Screen::drawKey(uint16_t x, uint16_t y, uint16_t w, uint16_t h, 
-                      String label, uint16_t color, bool pressed) {
-  // TODO: 繪製按鍵
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(20, 160);
+  tft.print("Try again");
 }
