@@ -24,6 +24,21 @@
 #define RFID_CS   4   // Chip Select (SDA)
 #define RFID_RST  27  // Reset
 
+// XPT2046 觸控接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
+#define TOUCH_CS   15   // 觸控晶片選擇
+#define TOUCH_IRQ  2    // 觸控中斷（可選）
+
+// 觸控校準參數（需根據實際硬體調整）
+#define TS_MINX 300
+#define TS_MAXX 3800
+#define TS_MINY 400
+#define TS_MAXY 3750
+
+// HUSKYLENS AI 辨識鏡頭接腳 (I2C)
+#define HUSKYLENS_SDA 21  // I2C 資料線
+#define HUSKYLENS_SCL 22  // I2C 時鐘線
+#define HUSKYLENS_I2C_ADDR 0x32  // I2C 地址（預設）
+
 // ========================================
 // 系統設定
 // ========================================
