@@ -2,6 +2,8 @@
 #define RFID_H
 
 #include <Arduino.h>
+#include <MFRC522.h>      // MFRC522 RFID 讀卡器函式庫
+#include <Preferences.h>  // ESP32 NVS 儲存（比 EEPROM 更好）
 
 // RFID RC522 控制類
 class RFID {
@@ -22,15 +24,30 @@ public:
   bool enrollCard();
 
 private:
-  // TODO: 添加必要的成員變數
-  // 例如:
-  // - MFRC522 物件（如果使用函式庫）
-  // - 已註冊卡片 UID 列表
-  // - 當前讀取的卡片 UID 緩衝區
+  // MFRC522 硬體物件
+  // 注意：物件會在 init() 中動態建立，因為需要從 config.h 讀取腳位
+  MFRC522* mfrc522;  // RFID 讀卡器物件指標
   
-  // 範例骨架（不使用函式庫的情況）：
-  // uint8_t registeredCards[10][4];  // 最多 10 張卡片，每張 4 bytes UID
-  // uint8_t cardCount = 0;
+  // ESP32 NVS 儲存（用於持久化註冊卡片）
+  Preferences prefs;
+  
+  // 暫存最後讀取的卡片 UID
+  uint8_t lastUID[10];      // UID 緩衝區（最大 10 bytes）
+  uint8_t lastUIDLength;    // 實際 UID 長度（通常 4 或 7 bytes）
+  
+  // 系統常數
+  static const uint8_t MAX_CARDS = 10;       // 最多註冊 10 張卡片
+  static const uint8_t MAX_UID_LENGTH = 10;  // UID 最大長度
+  
+  // 輔助函式
+  // 比對兩個 UID 是否相同
+  bool compareUID(uint8_t* uid1, uint8_t* uid2, uint8_t len);
+  
+  // 檢查卡片是否已註冊
+  bool isCardRegistered(uint8_t* uid, uint8_t len);
+  
+  // 儲存卡片到 NVS
+  void saveCardToStorage(uint8_t* uid, uint8_t len);
 };
 
 #endif
