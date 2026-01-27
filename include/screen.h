@@ -5,15 +5,18 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <XPT2046_Touchscreen.h>
 #include "config.h"
 
 class Screen {
 public:
   Screen();
   void init();
+  void initTouch();  // 初始化觸控
 
   void showWelcome();
   void showWaitingForFinger();
+  void showWaitingForCard();      // 等待感應 RFID 卡片（用於註冊）
   void showSuccess();
   void showFailed();
   
@@ -33,6 +36,12 @@ public:
 
 private:
   Adafruit_ILI9341 tft;
+  XPT2046_Touchscreen* ts;  // 觸控物件指標
+  
+  // 輔助繪圖函式
+  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, 
+                  uint16_t color, String text, bool pressed = false);
+  void drawMarker(int16_t x, int16_t y);  // 繪製校準標記點
 };
 
 #endif
