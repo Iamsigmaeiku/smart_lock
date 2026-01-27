@@ -143,9 +143,9 @@ void Screen::showMainMenu() {
   tft.print("Smart Lock");
   
   // 按鈕參數
-  int16_t btnW = 140, btnH = 80;
+  int16_t btnW = 140, btnH = 65;
   int16_t x1 = 10, x2 = 170;
-  int16_t y1 = 40, y2 = 130;
+  int16_t y1 = 40, y2 = 115;
   
   // 繪製 4 個主按鈕
   drawButton(x1, y1, btnW, btnH, 0x07E0, "Finger", false);    // 綠色
@@ -154,7 +154,7 @@ void Screen::showMainMenu() {
   drawButton(x2, y2, btnW, btnH, 0xF81F, "Face", false);      // 洋紅
   
   // 底部註冊按鈕（較小）
-  drawButton(60, 220, 200, 50, 0x8410, "Enroll Card", false); // 灰色
+  drawButton(60, 190, 200, 40, 0x8410, "Enroll Card", false); // 灰色
 }
 
 // ============================================
