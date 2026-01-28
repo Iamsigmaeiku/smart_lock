@@ -85,12 +85,16 @@ void loop() {
         int16_t x, y;
         display.getTouchPoint(x, y);
         
-        // 按鈕佈局（240x320 直立）：
-        // [指紋(10-120, 60-120)] [RFID(130-240, 60-120)]
-        // [密碼(10-120, 140-200)] [人臉(130-240, 140-200)]
-        // [註冊卡片(10-230, 240-280)]
+        // 調試輸出
+        Serial.printf("觸控座標: X=%d, Y=%d\n", x, y);
         
-        if (y >= 60 && y <= 120) {
+        // 按鈕佈局（240x320 直立）：
+        // [指紋(10-120, 50-110)] [RFID(130-240, 50-110)]
+        // [密碼(10-120, 120-180)] [人臉(130-240, 120-180)]
+        // [Enroll(10-120, 190-250)] [Setting(130-240, 190-250)]
+        
+        if (y >= 50 && y <= 110) {
+          // 第一排
           if (x >= 10 && x <= 120) {
             // 指紋按鈕
             Serial.println("選擇：指紋驗證");
@@ -104,7 +108,8 @@ void loop() {
             currentState = WAITING_INPUT;
             display.showWaitingForFinger();  // 可以改成專門的RFID提示畫面
           }
-        } else if (y >= 140 && y <= 200) {
+        } else if (y >= 120 && y <= 180) {
+          // 第二排
           if (x >= 10 && x <= 120) {
             // 密碼按鈕
             Serial.println("選擇：密碼驗證");
@@ -118,11 +123,16 @@ void loop() {
             currentState = WAITING_INPUT;
             display.showWaitingForFinger();  // 可以改成專門的人臉提示畫面
           }
-        } else if (y >= 240 && y <= 280) {
-          if (x >= 10 && x <= 230) {
-            // 註冊卡片按鈕（可選功能）
-            Serial.println("選擇：註冊新卡片");
+        } else if (y >= 190 && y <= 250) {
+          // 第三排
+          if (x >= 10 && x <= 120) {
+            // 註冊按鈕
+            Serial.println("選擇：註冊卡片/指紋");
             // TODO: 實作註冊流程
+          } else if (x >= 130 && x <= 240) {
+            // 設定按鈕
+            Serial.println("選擇：設定");
+            // TODO: 實作設定介面
           }
         }
         

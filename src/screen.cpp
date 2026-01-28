@@ -102,19 +102,20 @@ void Screen::showMainMenu() {
   // 2. 標題
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
-  tft.setCursor(50, 20);
+  tft.setCursor(50, 10);
   tft.print("Smart Lock");
   
-  // 3. 第一排按鈕
-  drawButton(10, 60, 110, 60, RED, "Finger", 2);
-  drawButton(130, 60, 110, 60, ORANGE, "RFID", 2);
+  // 3. 第一排按鈕 (Y: 50-110)
+  drawButton(10, 50, 110, 60, RED, "Finger", 2);
+  drawButton(130, 50, 110, 60, ORANGE, "RFID", 2);
   
-  // 4. 第二排按鈕
-  drawButton(10, 140, 110, 60, GREEN, "Password", 1);
-  drawButton(130, 140, 110, 60, CYAN, "Face", 2);
+  // 4. 第二排按鈕 (Y: 120-180)
+  drawButton(10, 120, 110, 60, GREEN, "Password", 1);
+  drawButton(130, 120, 110, 60, CYAN, "Face", 2);
   
-  // 5. 底部註冊按鈕
-  drawButton(10, 240, 220, 40, GRAY, "Enroll Card", 2);
+  // 5. 第三排按鈕 (Y: 190-250)
+  drawButton(10, 190, 110, 60, GRAY, "Enroll", 2);
+  drawButton(130, 190, 110, 60, GRAY, "Setting", 2);
   
   Serial.println("顯示：主選單");
 }
@@ -245,6 +246,9 @@ void Screen::getTouchPoint(int16_t &x, int16_t &y) {
   
   TS_Point p = ts.getPoint();
   
+  // 調試輸出原始座標
+  Serial.printf("原始觸控: X=%d, Y=%d\n", p.x, p.y);
+  
   // 映射到螢幕座標 (考慮旋轉和校準)
   // rotation=0 (直立模式): 240寬 x 320高
   x = map(p.x, TS_MINX, TS_MAXX, 0, 240);
@@ -253,6 +257,8 @@ void Screen::getTouchPoint(int16_t &x, int16_t &y) {
   // 限制在螢幕範圍內
   x = constrain(x, 0, 239);
   y = constrain(y, 0, 319);
+  
+  Serial.printf("映射後: X=%d, Y=%d\n", x, y);
 }
 
 void Screen::printTouchDebug() {
