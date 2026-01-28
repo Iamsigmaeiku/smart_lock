@@ -13,6 +13,14 @@
 #define ORANGE  0xFD20
 #define GRAY    0x8410
 
+<<<<<<< Updated upstream
+=======
+// 腳位定義
+#define TFT_CS   5
+#define TFT_RST  22
+#define TFT_DC   21
+
+>>>>>>> Stashed changes
 // 建構子
 Screen::Screen()
   : tft(TFT_CS, TFT_DC, TFT_RST),
@@ -167,6 +175,7 @@ void Screen::updatePasswordDisplay(String maskedPW) {
   }
   
   Serial.printf("更新密碼顯示：%d 位\n", maskedPW.length());
+<<<<<<< Updated upstream
 }
 
 int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
@@ -198,6 +207,8 @@ int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
   }
   
   return -1;
+=======
+>>>>>>> Stashed changes
 }
 
 void Screen::showWaitingForFinger() {
@@ -216,6 +227,7 @@ void Screen::showWaitingForFinger() {
   tft.print("your finger");
   
   Serial.println("顯示：等待指紋");
+<<<<<<< Updated upstream
 }
 
 void Screen::showWaitingForCard() {
@@ -236,6 +248,8 @@ void Screen::showWaitingForCard() {
   tft.print("now...");
   
   Serial.println("顯示：等待RFID卡片");
+=======
+>>>>>>> Stashed changes
 }
 
 void Screen::showSuccess() {
