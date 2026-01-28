@@ -85,37 +85,44 @@ void loop() {
         int16_t x, y;
         display.getTouchPoint(x, y);
         
-        // 按鈕佈局：
-        // [指紋(0-150, 40-120)] [RFID(160-310, 40-120)]
-        // [密碼(0-150, 130-210)] [人臉(160-310, 130-210)]
+        // 按鈕佈局（240x320 直立）：
+        // [指紋(10-120, 60-120)] [RFID(130-240, 60-120)]
+        // [密碼(10-120, 140-200)] [人臉(130-240, 140-200)]
+        // [註冊卡片(10-230, 240-280)]
         
-        if (y >= 40 && y <= 120) {
-          if (x >= 10 && x <= 150) {
+        if (y >= 60 && y <= 120) {
+          if (x >= 10 && x <= 120) {
             // 指紋按鈕
             Serial.println("選擇：指紋驗證");
             lastAuthMethod = FINGERPRINT;
             currentState = WAITING_INPUT;
             display.showWaitingForFinger();
-          } else if (x >= 160 && x <= 310) {
+          } else if (x >= 130 && x <= 240) {
             // RFID按鈕
             Serial.println("選擇：RFID驗證");
             lastAuthMethod = RFID_CARD;
             currentState = WAITING_INPUT;
             display.showWaitingForFinger();  // 可以改成專門的RFID提示畫面
           }
-        } else if (y >= 130 && y <= 210) {
-          if (x >= 10 && x <= 150) {
+        } else if (y >= 140 && y <= 200) {
+          if (x >= 10 && x <= 120) {
             // 密碼按鈕
             Serial.println("選擇：密碼驗證");
             lastAuthMethod = PASSWORD;
             currentState = PASSWORD_INPUT;
             display.showPasswordInput();
-          } else if (x >= 160 && x <= 310) {
+          } else if (x >= 130 && x <= 240) {
             // 人臉按鈕
             Serial.println("選擇：人臉驗證");
             lastAuthMethod = FACE_RECOGNITION;
             currentState = WAITING_INPUT;
             display.showWaitingForFinger();  // 可以改成專門的人臉提示畫面
+          }
+        } else if (y >= 240 && y <= 280) {
+          if (x >= 10 && x <= 230) {
+            // 註冊卡片按鈕（可選功能）
+            Serial.println("選擇：註冊新卡片");
+            // TODO: 實作註冊流程
           }
         }
         
