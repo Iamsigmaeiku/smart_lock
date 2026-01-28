@@ -26,7 +26,7 @@
 
 // XPT2046 觸控接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
 #define TOUCH_CS   15   // 觸控晶片選擇
-#define TOUCH_IRQ  2    // 觸控中斷（可選）
+#define TOUCH_IRQ  36    // 觸控中斷（可選）
 
 // 觸控校準參數（需根據實際硬體調整）
 #define TS_MINX 300
