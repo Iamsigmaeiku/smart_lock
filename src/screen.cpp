@@ -13,7 +13,7 @@ Screen::Screen()
 // ============================================
 void Screen::init() {
   tft.begin();
-  tft.setRotation(1);      // 橫向（320x240）
+  tft.setRotation(0);      // 直立（240x320）
   tft.fillScreen(0x0000);
   tft.setTextWrap(false);
 }
@@ -28,7 +28,7 @@ void Screen::initTouch() {
   ts = new XPT2046_Touchscreen(TOUCH_CS, TOUCH_IRQ);
   
   ts->begin();
-  ts->setRotation(1);  // 與螢幕 rotation 一致
+  ts->setRotation(0);  // 與螢幕 rotation 一致
   
   Serial.println("觸控初始化完成");
 }
@@ -51,12 +51,12 @@ void Screen::getTouchPoint(int16_t &x, int16_t &y) {
   TS_Point p = ts->getPoint();
   
   // 座標映射（原始座標 → 螢幕像素）
-  x = map(p.x, TS_MINX, TS_MAXX, 0, 320);
-  y = map(p.y, TS_MINY, TS_MAXY, 0, 240);
+  x = map(p.x, TS_MINX, TS_MAXX, 0, 240);
+  y = map(p.y, TS_MINY, TS_MAXY, 0, 320);
   
   // 限制範圍
-  x = constrain(x, 0, 319);
-  y = constrain(y, 0, 239);
+  x = constrain(x, 0, 239);
+  y = constrain(y, 0, 319);
 }
 
 void Screen::printTouchDebug() {
@@ -113,20 +113,21 @@ void Screen::drawMarker(int16_t x, int16_t y) {
 // ============================================
 void Screen::showWelcome() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(60, 60);
+  tft.setCursor(70, 80);
   tft.print("Welcome");
 
   tft.setTextColor(0x07E0);
   tft.setTextSize(3);
-  tft.setCursor(30, 100);
+  tft.setCursor(30, 140);
   tft.print("SMART LOCK");
 
   tft.setTextColor(0x8410);
   tft.setTextSize(2);
-  tft.setCursor(40, 170);
+  tft.setCursor(40, 220);
   tft.print("Touch sensor");
 }
 
@@ -135,26 +136,23 @@ void Screen::showWelcome() {
 // ============================================
 void Screen::showMainMenu() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   // 標題
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(90, 10);
+  tft.setCursor(65, 10);
   tft.print("Smart Lock");
   
-  // 按鈕參數
-  int16_t btnW = 140, btnH = 65;
-  int16_t x1 = 10, x2 = 170;
-  int16_t y1 = 40, y2 = 115;
+  // 按鈕參數（垂直排列，優化間距）
+  int16_t btnW = 220, btnH = 55;
+  int16_t x = 10;
   
-  // 繪製 4 個主按鈕
-  drawButton(x1, y1, btnW, btnH, 0x07E0, "Finger", false);    // 綠色
-  drawButton(x2, y1, btnW, btnH, 0x07FF, "RFID", false);      // 青色
-  drawButton(x1, y2, btnW, btnH, 0xFFE0, "Password", false);  // 黃色
-  drawButton(x2, y2, btnW, btnH, 0xF81F, "Face", false);      // 洋紅
-  
-  // 底部註冊按鈕（較小）
-  drawButton(60, 190, 200, 40, 0x8410, "Enroll Card", false); // 灰色
+  // 繪製 4 個主按鈕（垂直排列，間距15像素）
+  drawButton(x, 50, btnW, btnH, 0x07E0, "Finger", false);    // 綠色
+  drawButton(x, 120, btnW, btnH, 0x07FF, "RFID", false);     // 青色
+  drawButton(x, 190, btnW, btnH, 0xFFE0, "Password", false); // 黃色
+  drawButton(x, 260, btnW, btnH, 0xF81F, "Face", false);     // 洋紅
 }
 
 // ============================================
@@ -162,19 +160,20 @@ void Screen::showMainMenu() {
 // ============================================
 void Screen::showPasswordInput() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   // 標題
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(80, 10);
+  tft.setCursor(20, 15);
   tft.print("Enter Password");
   
   // 密碼顯示區域（白色框）
-  tft.drawRoundRect(40, 35, 240, 30, 5, 0xFFFF);
+  tft.drawRoundRect(20, 50, 200, 30, 5, 0xFFFF);
   
   // 繪製數字鍵盤
-  int16_t keyW = 70, keyH = 50;
-  int16_t startX = 40, startY = 80;
+  int16_t keyW = 60, keyH = 50;
+  int16_t startX = 30, startY = 95;
   int16_t gap = 10;
   
   String keys[4][3] = {
@@ -198,12 +197,12 @@ void Screen::showPasswordInput() {
 // ============================================
 void Screen::updatePasswordDisplay(String maskedPW) {
   // 清除舊內容
-  tft.fillRect(45, 40, 230, 20, 0x0000);
+  tft.fillRect(25, 55, 190, 20, 0x0000);
   
   // 顯示星號
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(50, 42);
+  tft.setCursor(30, 57);
   tft.print(maskedPW);
 }
 
@@ -211,8 +210,8 @@ void Screen::updatePasswordDisplay(String maskedPW) {
 // 按鍵檢測（返回 0-9 或特殊鍵）
 // ============================================
 int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
-  int16_t keyW = 70, keyH = 50;
-  int16_t startX = 40, startY = 80;
+  int16_t keyW = 60, keyH = 50;
+  int16_t startX = 30, startY = 95;
   int16_t gap = 10;
   
   // 計算按了哪一行哪一列
@@ -239,20 +238,21 @@ int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
 // ============================================
 void Screen::showWaitingForFinger() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(20, 60);
+  tft.setCursor(30, 80);
   tft.print("Please verify");
 
   tft.setTextColor(0x07E0);
   tft.setTextSize(3);
-  tft.setCursor(20, 110);
+  tft.setCursor(50, 140);
   tft.print("FINGER");
 
   tft.setTextColor(0x8410);
   tft.setTextSize(2);
-  tft.setCursor(20, 180);
+  tft.setCursor(20, 220);
   tft.print("Touch sensor...");
 }
 
@@ -261,20 +261,21 @@ void Screen::showWaitingForFinger() {
 // ============================================
 void Screen::showWaitingForCard() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(20, 60);
+  tft.setCursor(20, 80);
   tft.print("Enroll new card");
 
   tft.setTextColor(0x07FF);  // 青色
   tft.setTextSize(3);
-  tft.setCursor(40, 110);
+  tft.setCursor(20, 140);
   tft.print("RFID CARD");
 
   tft.setTextColor(0x8410);
   tft.setTextSize(2);
-  tft.setCursor(20, 180);
+  tft.setCursor(10, 220);
   tft.print("Place card now...");
 }
 
@@ -283,15 +284,16 @@ void Screen::showWaitingForCard() {
 // ============================================
 void Screen::showSuccess() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0x07E0);
   tft.setTextSize(3);
-  tft.setCursor(40, 100);
+  tft.setCursor(40, 130);
   tft.print("SUCCESS");
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(30, 160);
+  tft.setCursor(30, 190);
   tft.print("Door unlocked");
 }
 
@@ -300,15 +302,16 @@ void Screen::showSuccess() {
 // ============================================
 void Screen::showFailed() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xF800);   // 紅色（RGB565）
   tft.setTextSize(3);
-  tft.setCursor(55, 100);
+  tft.setCursor(55, 130);
   tft.print("FAILED");
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(20, 160);
+  tft.setCursor(60, 190);
   tft.print("Try again");
 }
 
@@ -317,16 +320,17 @@ void Screen::showFailed() {
 // ============================================
 void Screen::showCalibrationMarkers() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(40, 110);
+  tft.setCursor(20, 150);
   tft.print("Touch Calibration");
   
   // 繪製 5 個標記點（四角 + 中心）
   drawMarker(10, 10);      // 左上
-  drawMarker(310, 10);     // 右上
-  drawMarker(10, 230);     // 左下
-  drawMarker(310, 230);    // 右下
-  drawMarker(160, 120);    // 中心
+  drawMarker(230, 10);     // 右上
+  drawMarker(10, 310);     // 左下
+  drawMarker(230, 310);    // 右下
+  drawMarker(120, 160);    // 中心
 }
