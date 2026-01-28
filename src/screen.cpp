@@ -113,6 +113,7 @@ void Screen::drawMarker(int16_t x, int16_t y) {
 // ============================================
 void Screen::showWelcome() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
@@ -135,18 +136,19 @@ void Screen::showWelcome() {
 // ============================================
 void Screen::showMainMenu() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   // 標題
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
-  tft.setCursor(65, 15);
+  tft.setCursor(65, 10);
   tft.print("Smart Lock");
   
-  // 按鈕參數（垂直排列）
-  int16_t btnW = 220, btnH = 60;
+  // 按鈕參數（垂直排列，優化間距）
+  int16_t btnW = 220, btnH = 55;
   int16_t x = 10;
   
-  // 繪製 4 個主按鈕（垂直排列）
+  // 繪製 4 個主按鈕（垂直排列，間距15像素）
   drawButton(x, 50, btnW, btnH, 0x07E0, "Finger", false);    // 綠色
   drawButton(x, 120, btnW, btnH, 0x07FF, "RFID", false);     // 青色
   drawButton(x, 190, btnW, btnH, 0xFFE0, "Password", false); // 黃色
@@ -158,6 +160,7 @@ void Screen::showMainMenu() {
 // ============================================
 void Screen::showPasswordInput() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   // 標題
   tft.setTextColor(0xFFFF);
@@ -235,6 +238,7 @@ int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
 // ============================================
 void Screen::showWaitingForFinger() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
@@ -257,6 +261,7 @@ void Screen::showWaitingForFinger() {
 // ============================================
 void Screen::showWaitingForCard() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
@@ -279,6 +284,7 @@ void Screen::showWaitingForCard() {
 // ============================================
 void Screen::showSuccess() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0x07E0);
   tft.setTextSize(3);
@@ -296,6 +302,7 @@ void Screen::showSuccess() {
 // ============================================
 void Screen::showFailed() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
 
   tft.setTextColor(0xF800);   // 紅色（RGB565）
   tft.setTextSize(3);
@@ -313,6 +320,7 @@ void Screen::showFailed() {
 // ============================================
 void Screen::showCalibrationMarkers() {
   tft.fillScreen(0x0000);
+  delay(10);  // 給硬體時間清除
   
   tft.setTextColor(0xFFFF);
   tft.setTextSize(2);
