@@ -12,11 +12,7 @@ class Screen {
 public:
   Screen();
   void init();
-<<<<<<< Updated upstream
-  void initTouch();  // 初始化觸控
-=======
   void initTouch();                                   // 初始化觸控（XPT2046）
->>>>>>> Stashed changes
 
   void showWelcome();
   void showMainMenu();                                // 主選單（選擇驗證方式）
@@ -38,20 +34,11 @@ public:
 
 private:
   Adafruit_ILI9341 tft;
-<<<<<<< Updated upstream
-  XPT2046_Touchscreen* ts;  // 觸控物件指標
-  
-  // 輔助繪圖函式
-  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, 
-                  uint16_t color, String text, bool pressed = false);
-  void drawMarker(int16_t x, int16_t y);  // 繪製校準標記點
-=======
   XPT2046_Touchscreen ts;                            // 觸控物件
   
   // UI 輔助函數
   void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, 
                   uint16_t color, const char* label, uint8_t textSize = 2);
->>>>>>> Stashed changes
 };
 
 #endif
