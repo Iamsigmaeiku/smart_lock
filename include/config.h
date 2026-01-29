@@ -29,10 +29,10 @@
 #define TOUCH_IRQ  2    // 觸控中斷（可選）
 
 // 觸控校準參數（需根據實際硬體調整）
-#define TS_MINX 300
-#define TS_MAXX 3800
-#define TS_MINY 400
-#define TS_MAXY 3750
+#define TS_MINX 400
+#define TS_MAXX 3750
+#define TS_MINY 300
+#define TS_MAXY 3800
 
 // HUSKYLENS AI 辨識鏡頭接腳 (I2C)
 #define HUSKYLENS_SDA 21  // I2C 資料線
