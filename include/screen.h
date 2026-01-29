@@ -5,12 +5,14 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <XPT2046_Touchscreen.h>
 #include "config.h"
 
 class Screen {
 public:
   Screen();
   void init();
+  void initTouch();
 
   void showWelcome();
   void showWaitingForFinger();
@@ -30,9 +32,16 @@ public:
   
   // 校準測試
   void showCalibrationMarkers();                      // 顯示校準標記點
+  
+  // 輔助函數
+  bool isButtonPressed(int16_t x, int16_t y, int16_t btnX, int16_t btnY, 
+                       int16_t btnW, int16_t btnH);   // 判斷是否按中按鈕
+  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, 
+                  uint16_t color, const char* label, uint8_t textSize);
 
 private:
   Adafruit_ILI9341 tft;
+  XPT2046_Touchscreen ts;
 };
 
 #endif

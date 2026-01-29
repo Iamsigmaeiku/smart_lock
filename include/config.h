@@ -45,4 +45,20 @@
 #define SERIAL_BAUD 115200
 #define UNLOCK_DURATION 5000  // 開鎖持續時間 (毫秒)
 
+// ========================================
+// 螢幕設定
+// ========================================
+#define SCREEN_WIDTH  240
+#define SCREEN_HEIGHT 320
+
+// 主選單按鈕佈局
+#define MENU_BTN_LEFT_X    10
+#define MENU_BTN_RIGHT_X   130
+#define MENU_BTN_WIDTH     110
+#define MENU_BTN_HEIGHT    60
+
+#define MENU_BTN_ROW1_Y    50   // Finger, RFID
+#define MENU_BTN_ROW2_Y    120  // Password, Face
+#define MENU_BTN_ROW3_Y    190  // Enroll, Setting
+
 #endif
