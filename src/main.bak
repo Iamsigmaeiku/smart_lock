@@ -1,0 +1,274 @@
+#include <Arduino.h>
+#include "config.h"
+#include "fingerprint.h"
+#include "screen.h"
+#include "motor.h"
+#include "rfid.h"
+#include "huskylens.h"
+#include "wifi_comm.h"
+#include "password.h"
+
+uint32_t unlockStartMs = 0;
+bool isUnlocking = false;
+
+Fingerprint fingerSensor;
+Screen display;
+Motor doorMotor;
+RFID rfidReader;
+HuskyLens aiCamera;
+wifi_comm wifiModule;
+Password pwManager;
+
+enum SystemState {
+  IDLE,
+  MENU,
+  WAITING_INPUT,
+  PASSWORD_INPUT,
+  VERIFYING,
+  UNLOCKING,
+  LOCKED,
+  ENROLLING
+};
+
+SystemState currentState = IDLE;
+
+enum AuthMethod {
+  NONE,
+  FINGERPRINT,
+  RFID_CARD,
+  FACE_RECOGNITION,
+  PASSWORD
+};
+
+AuthMethod lastAuthMethod = NONE;
+
+void setup() {
+  Serial.begin(SERIAL_BAUD);
+  Serial.println("================================");
+  Serial.println("智慧門鎖系統啟動中...");
+  Serial.println("================================");
+
+  fingerSensor.init();
+  display.init();
+  display.initTouch();
+  doorMotor.init(MOTOR_PIN);
+  rfidReader.init();
+  aiCamera.init();
+  wifiModule.init();
+  pwManager.init();
+
+  display.showWelcome();
+  delay(2000);
+
+  currentState = MENU;
+  display.showMainMenu();
+
+  Serial.println("系統準備就緒！");
+}
+
+void loop() {
+  wifiModule.update();
+
+  switch (currentState) {
+
+    case MENU: {
+      if (display.isTouched()) {
+        int16_t x, y;
+        display.getTouchPoint(x, y);
+
+        // === 반드시 Screen::showMainMenu() 同步（rotation=3 時 W=320 H=240）===
+        const int16_t W = 320;
+        const int16_t H = 240;
+
+        const int16_t cols = 3, rows = 2;
+        const int16_t marginX = 10;
+        const int16_t gapX = 10;
+        const int16_t gapY = 12;
+
+        const int16_t topY = 40;
+        const int16_t bottomMargin = 10;
+
+        int16_t btnW = (W - 2 * marginX - (cols - 1) * gapX) / cols;
+        int16_t btnH = (H - topY - bottomMargin - (rows - 1) * gapY) / rows;
+
+        int pressed = -1;
+        for (int r = 0; r < rows; r++) {
+          for (int c = 0; c < cols; c++) {
+            int16_t bx = marginX + c * (btnW + gapX);
+            int16_t by = topY    + r * (btnH + gapY);
+
+            if (x >= bx && x <= bx + btnW && y >= by && y <= by + btnH) {
+              pressed = r * cols + c; // 0..5
+            }
+          }
+        }
+
+        if (pressed != -1) {
+          switch (pressed) {
+            case 0: // Finger
+              Serial.println("選擇：指紋驗證");
+              lastAuthMethod = FINGERPRINT;
+              currentState = WAITING_INPUT;
+              display.showWaitingForFinger();
+              break;
+
+            case 1: // RFID
+              Serial.println("選擇：RFID驗證");
+              lastAuthMethod = RFID_CARD;
+              currentState = WAITING_INPUT;
+              display.showWaitingForCard();
+              break;
+
+            case 2: // Password
+              Serial.println("選擇：密碼驗證");
+              lastAuthMethod = PASSWORD;
+              currentState = PASSWORD_INPUT;
+              display.showPasswordInput();
+              break;
+
+            case 3: // Face
+              Serial.println("選擇：人臉驗證");
+              lastAuthMethod = FACE_RECOGNITION;
+              currentState = WAITING_INPUT;
+              display.showWaitingForFinger(); // 你可改 showWaitingForFace()
+              break;
+
+            case 4: // Enroll
+              Serial.println("選擇：註冊卡片");
+              currentState = ENROLLING;
+              display.showWaitingForCard();
+              break;
+
+            case 5: // Setting
+              Serial.println("選擇：Setting（未實作）");
+              break;
+          }
+
+          delay(300);
+        }
+      }
+      break;
+    }
+
+    case WAITING_INPUT:
+      if (fingerSensor.detectFinger()) {
+        lastAuthMethod = FINGERPRINT;
+        currentState = VERIFYING;
+      }
+      if (rfidReader.detectCard()) {
+        lastAuthMethod = RFID_CARD;
+        currentState = VERIFYING;
+      }
+      if (aiCamera.detectFace()) {
+        lastAuthMethod = FACE_RECOGNITION;
+        currentState = VERIFYING;
+      }
+      break;
+
+    case PASSWORD_INPUT: {
+      static String enteredPW = "";
+      static unsigned long lastTouchTime = 0;
+
+      if (pwManager.isLocked()) {
+        display.showFailed();
+        delay(2000);
+        enteredPW = "";
+        currentState = MENU;
+        display.showMainMenu();
+        break;
+      }
+
+      if (display.isTouched()) {
+        if (millis() - lastTouchTime < 200) break;
+        lastTouchTime = millis();
+
+        int16_t x, y;
+        display.getTouchPoint(x, y);
+        int8_t key = display.getKeypadPress(x, y);
+
+        if (key >= 0 && key <= 9) {
+          if (enteredPW.length() < 8) {
+            enteredPW += String(key);
+            display.updatePasswordDisplay(enteredPW);
+          }
+        } else if (key == 10) {
+          enteredPW = "";
+          display.updatePasswordDisplay(enteredPW);
+        } else if (key == 11) {
+          if (enteredPW.length() < 4) {
+            display.showFailed();
+            delay(1500);
+            enteredPW = "";
+            display.showPasswordInput();
+          } else {
+            bool verified = pwManager.verifyPassword(enteredPW);
+            if (verified) {
+              display.showSuccess();
+              doorMotor.unlock();
+              unlockStartMs = millis();
+              isUnlocking = true;
+              currentState = UNLOCKING;
+              enteredPW = "";
+            } else {
+              display.showFailed();
+              delay(2000);
+              enteredPW = "";
+              if (pwManager.isLocked()) {
+                currentState = MENU;
+                display.showMainMenu();
+              } else {
+                display.showPasswordInput();
+              }
+            }
+          }
+        }
+      }
+      break;
+    }
+
+    case VERIFYING: {
+      bool verified = false;
+      if (lastAuthMethod == FINGERPRINT) verified = fingerSensor.verifyFinger();
+      else if (lastAuthMethod == RFID_CARD) verified = rfidReader.verifyCard();
+      else if (lastAuthMethod == FACE_RECOGNITION) verified = aiCamera.verifyFace();
+
+      if (verified) {
+        display.showSuccess();
+        doorMotor.unlock();
+        unlockStartMs = millis();
+        isUnlocking = true;
+        currentState = UNLOCKING;
+      } else {
+        display.showFailed();
+        delay(2000);
+        lastAuthMethod = NONE;
+        currentState = MENU;
+        display.showMainMenu();
+      }
+      break;
+    }
+
+    case UNLOCKING:
+      if (isUnlocking && (millis() - unlockStartMs >= UNLOCK_DURATION)) {
+        doorMotor.lock();
+        isUnlocking = false;
+        lastAuthMethod = NONE;
+        currentState = MENU;
+        display.showMainMenu();
+      }
+      break;
+
+    case ENROLLING:
+      if (rfidReader.detectCard()) {
+        if (rfidReader.enrollCard()) display.showSuccess();
+        else display.showFailed();
+        delay(2000);
+        currentState = MENU;
+        display.showMainMenu();
+      }
+      break;
+
+    default:
+      break;
+  }
+}

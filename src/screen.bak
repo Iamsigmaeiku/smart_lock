@@ -1,0 +1,399 @@
+#include "screen.h"
+<<<<<<< Updated upstream
+#include "config.h"
+
+// ILI9341 沒有無參數建構子，所以必須用初始化列表建構
+Screen::Screen()
+  : tft(TFT_CS, TFT_DC, TFT_RST) {
+}
+
+void Screen::init() {
+  tft.begin();
+  tft.setRotation(1);      // 依你的螢幕方向調整
+  tft.fillScreen(0x0000);
+  tft.setTextWrap(false);
+}
+
+void Screen::showWelcome() {
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(60, 60);
+  tft.print("Welcome");
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  tft.setCursor(30, 100);
+  tft.print("SMART LOCK");
+
+  tft.setTextColor(0x8410);
+  tft.setTextSize(2);
+  tft.setCursor(40, 170);
+  tft.print("Touch sensor");
+}
+
+void Screen::showWaitingForFinger() {
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(20, 60);
+=======
+
+Screen::Screen() : tft(TFT_CS, TFT_DC, TFT_RST), ts(nullptr) {}
+
+// =====================================================
+// init：實體要正向 => rotation=1
+// 但你的所有 UI 座標都用 rotation=0 基底 (240x320)
+// =====================================================
+void Screen::init() {
+  tft.begin();
+  SPI.setFrequency(10000000); // 10MHz 先求穩
+  // ★ 實體正向必須用 1（你已確認）
+  tft.setRotation(0);
+
+  tft.fillScreen(0x0000);
+  tft.setTextWrap(false);
+
+  Serial.printf("TFT physical rotation=1, physical W=%d H=%d\n", tft.width(), tft.height());
+  Serial.printf("UI logical base rotation=0, logical W=%d H=%d\n", LOG_W, LOG_H);
+}
+
+void Screen::initTouch() {
+  ts = new XPT2046_Touchscreen(TOUCH_CS, TOUCH_IRQ);
+  ts->begin();
+
+  // 觸控先固定 0（跟校正 TS_MINX/TS_MAXX/TS_MINY/TS_MAXY 一致）
+  ts->setRotation(0);
+
+  Serial.println("觸控初始化完成");
+}
+
+bool Screen::isTouched() {
+  if (!ts) return false;
+  return ts->touched();
+}
+
+// =====================================================
+// 觸控：回傳「rotation=0 基底」座標 (0..239, 0..319)
+// 這樣 main 的 hitbox 永遠都用 240x320 寫
+// =====================================================
+void Screen::getTouchPoint(int16_t &x, int16_t &y) {
+  if (!ts) { x = 0; y = 0; return; }
+
+  TS_Point p = ts->getPoint();
+
+  x = map(p.x, TS_MINX, TS_MAXX, 0, LOG_W);
+  y = map(p.y, TS_MINY, TS_MAXY, 0, LOG_H);
+
+  x = constrain(x, 0, LOG_W - 1);
+  y = constrain(y, 0, LOG_H - 1);
+}
+
+void Screen::printTouchDebug() {
+  if (ts && ts->touched()) {
+    TS_Point p = ts->getPoint();
+    int16_t x0, y0;
+    getTouchPoint(x0, y0);
+    Serial.printf("raw(%d,%d) -> logical0(%d,%d)\n", p.x, p.y, x0, y0);
+  }
+}
+
+// =====================================================
+// 座標轉換：logical rotation=0 (240x320) -> physical rotation=1 (320x240)
+// rotation=1 (順時針 90) 的點轉換： (x0,y0) -> (xp,yp) = (y0, LOG_W-1-x0)
+// =====================================================
+void Screen::mapPoint0ToPhys(int16_t x0, int16_t y0, int16_t &xp, int16_t &yp) {
+  xp = y0;
+  yp = (LOG_W - 1) - x0;
+}
+
+// 用「四角取 bounding box」來轉矩形，避免你之前那種 w/h 反掉或位移錯
+void Screen::mapRect0ToPhys(int16_t x0, int16_t y0, int16_t w0, int16_t h0,
+                            int16_t &xp, int16_t &yp, int16_t &wp, int16_t &hp) {
+  int16_t x1 = x0;
+  int16_t y1 = y0;
+  int16_t x2 = x0 + w0 - 1;
+  int16_t y2 = y0 + h0 - 1;
+
+  int16_t p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y;
+  mapPoint0ToPhys(x1, y1, p1x, p1y);
+  mapPoint0ToPhys(x2, y1, p2x, p2y);
+  mapPoint0ToPhys(x1, y2, p3x, p3y);
+  mapPoint0ToPhys(x2, y2, p4x, p4y);
+
+  int16_t minX = min(min(p1x, p2x), min(p3x, p4x));
+  int16_t maxX = max(max(p1x, p2x), max(p3x, p4x));
+  int16_t minY = min(min(p1y, p2y), min(p3y, p4y));
+  int16_t maxY = max(max(p1y, p2y), max(p3y, p4y));
+
+  xp = minX;
+  yp = minY;
+  wp = maxX - minX + 1;
+  hp = maxY - minY + 1;
+}
+
+// =====================================================
+// 「以 0 為基底」的繪圖 wrapper
+// =====================================================
+void Screen::fillScreen0(uint16_t color) {
+  tft.fillScreen(color);
+}
+
+void Screen::setCursor0(int16_t x0, int16_t y0) {
+  int16_t xp, yp;
+  mapPoint0ToPhys(x0, y0, xp, yp);
+  tft.setCursor(xp, yp);
+}
+
+void Screen::fillRoundRect0(int16_t x0, int16_t y0, int16_t w0, int16_t h0, int16_t r, uint16_t color) {
+  int16_t xp, yp, wp, hp;
+  mapRect0ToPhys(x0, y0, w0, h0, xp, yp, wp, hp);
+  tft.fillRoundRect(xp, yp, wp, hp, r, color);
+}
+
+void Screen::drawRoundRect0(int16_t x0, int16_t y0, int16_t w0, int16_t h0, int16_t r, uint16_t color) {
+  int16_t xp, yp, wp, hp;
+  mapRect0ToPhys(x0, y0, w0, h0, xp, yp, wp, hp);
+  tft.drawRoundRect(xp, yp, wp, hp, r, color);
+}
+
+void Screen::drawButton0(int16_t x0, int16_t y0, int16_t w0, int16_t h0,
+                         uint16_t color, const String &text, bool pressed,
+                         uint8_t textSize) {
+  const int16_t r = 10;
+  uint16_t fill = pressed ? (color >> 2) : (color >> 3);
+
+  fillRoundRect0(x0, y0, w0, h0, r, fill);
+  drawRoundRect0(x0, y0, w0, h0, r, color);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(textSize);
+
+  // 內建字型每字 6x8
+  int16_t textW = text.length() * (6 * textSize);
+  int16_t textH = 8 * textSize;
+
+  int16_t tx0 = x0 + (w0 - textW) / 2;
+  int16_t ty0 = y0 + (h0 - textH) / 2;
+
+  setCursor0(tx0, ty0);
+  tft.print(text);
+}
+
+// =====================================================
+// 畫面：全部都用「rotation=0 基底」座標寫
+// =====================================================
+void Screen::showWelcome() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextWrap(false);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(65, 80);
+  tft.print("WELCOME");
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  setCursor0(25, 140);
+  tft.print("SMART LOCK");
+}
+
+void Screen::showMainMenu() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(70, 10);
+  tft.print("Functions");
+
+  // 3列 x 2欄（rows=3 cols=2）—以 240x320 計算
+  const int16_t cols = 2;
+  const int16_t rows = 3;
+
+  const int16_t marginX = 10;
+  const int16_t gapX = 10;
+  const int16_t gapY = 12;
+  const int16_t topY = 45;
+  const int16_t bottomMargin = 12;
+
+  int16_t btnW = (LOG_W - 2 * marginX - (cols - 1) * gapX) / cols;
+  int16_t btnH = (LOG_H - topY - bottomMargin - (rows - 1) * gapY) / rows;
+
+  struct Btn { const char *label; uint16_t color; };
+  Btn b[6] = {
+    {"Finger",   0x07E0},
+    {"RFID",     0x07FF},
+    {"Password", 0xFFE0},
+    {"Face",     0xF81F},
+    {"Enroll",   0xFD20},
+    {"Setting",  0x8410},
+  };
+
+  int idx = 0;
+  for (int r = 0; r < rows; r++) {
+    for (int c = 0; c < cols; c++) {
+      int16_t x0 = marginX + c * (btnW + gapX);
+      int16_t y0 = topY    + r * (btnH + gapY);
+      drawButton0(x0, y0, btnW, btnH, b[idx].color, b[idx].label, false, 2);
+      idx++;
+    }
+  }
+}
+
+void Screen::showPasswordInput() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(20, 15);
+  tft.print("Enter Password");
+
+  drawRoundRect0(20, 50, 200, 30, 5, 0xFFFF);
+
+  int16_t keyW = 60, keyH = 50;
+  int16_t startX = 30, startY = 95;
+  int16_t gap = 10;
+
+  String keys[4][3] = {
+    {"1", "2", "3"},
+    {"4", "5", "6"},
+    {"7", "8", "9"},
+    {"#", "0", "*"}
+  };
+
+  for (int row = 0; row < 4; row++) {
+    for (int col = 0; col < 3; col++) {
+      int16_t x0 = startX + col * (keyW + gap);
+      int16_t y0 = startY + row * (keyH + gap);
+      drawButton0(x0, y0, keyW, keyH, 0x4A49, keys[row][col], false, 2);
+    }
+  }
+}
+
+void Screen::updatePasswordDisplay(const String &maskedPW) {
+  // 清框（用 fillRoundRect0 以免方向問題）
+  // 這裡用 fillRoundRect0 只是偷懶，實際就是 fillRect 的概念
+  fillRoundRect0(25, 55, 190, 20, 0, 0x0000);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(30, 57);
+  tft.print(maskedPW);
+}
+
+int8_t Screen::getKeypadPress(int16_t x, int16_t y) {
+  // ★ 注意：x,y 是 logical0 座標，所以 hitbox 也用 logical0（跟顯示一致）
+  int16_t keyW = 60, keyH = 50;
+  int16_t startX = 30, startY = 95;
+  int16_t gap = 10;
+
+  for (int row = 0; row < 4; row++) {
+    for (int col = 0; col < 3; col++) {
+      int16_t kx = startX + col * (keyW + gap);
+      int16_t ky = startY + row * (keyH + gap);
+
+      if (x >= kx && x <= kx + keyW && y >= ky && y <= ky + keyH) {
+        if (row < 3) return row * 3 + col + 1; // 1..9
+        if (col == 0) return 10;               // #
+        if (col == 1) return 0;                // 0
+        return 11;                              // *
+      }
+    }
+  }
+  return -1;
+}
+
+void Screen::showWaitingForFinger() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(30, 80);
+>>>>>>> Stashed changes
+  tft.print("Please verify");
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+<<<<<<< Updated upstream
+  tft.setCursor(20, 110);
+  tft.print("FINGER");
+
+  tft.setTextColor(0x8410);
+  tft.setTextSize(2);
+  tft.setCursor(20, 180);
+  tft.print("Touch sensor...");
+}
+
+void Screen::showSuccess() {
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  tft.setCursor(40, 100);
+  tft.print("SUCCESS");
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(30, 160);
+  tft.print("Door unlocked");
+}
+
+void Screen::showFailed() {
+  tft.fillScreen(0x0000);
+
+  tft.setTextColor(0xF800);   // 紅色（RGB565）
+  tft.setTextSize(3);
+  tft.setCursor(55, 100);
+  tft.print("FAILED");
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  tft.setCursor(20, 160);
+  tft.print("Try again");
+=======
+  setCursor0(50, 140);
+  tft.print("FINGER");
+}
+
+void Screen::showWaitingForCard() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(20, 80);
+  tft.print("Enroll new card");
+
+  tft.setTextColor(0x07FF);
+  tft.setTextSize(3);
+  setCursor0(20, 140);
+  tft.print("RFID CARD");
+}
+
+void Screen::showSuccess() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0x07E0);
+  tft.setTextSize(3);
+  setCursor0(40, 130);
+  tft.print("SUCCESS");
+}
+
+void Screen::showFailed() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xF800);
+  tft.setTextSize(3);
+  setCursor0(55, 130);
+  tft.print("FAILED");
+>>>>>>> Stashed changes
+}
