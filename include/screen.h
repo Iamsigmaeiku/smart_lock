@@ -40,12 +40,7 @@ public:
 
 private:
   Adafruit_ILI9341 tft;
-<<<<<<< HEAD:include/screen.bak
-=======
   XPT2046_Touchscreen ts;
-};
->>>>>>> f086b20adb13961bf760b7a36c4206a550bcf6ad:include/screen.h
-
 
   // ===== 你「以 0 為基底」的邏輯尺寸 =====
   static constexpr int16_t LOG_W = 240;

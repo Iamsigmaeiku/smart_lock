@@ -33,12 +33,12 @@ void setup() {
   
   // 初始化螢幕
   tft.begin();
-  tft.setRotation(1);  // 橫向
+  tft.setRotation(0);  // 直立模式 (240x320)
   tft.fillScreen(ILI9341_BLACK);
   
   // 初始化觸控
   touch.begin();
-  touch.setRotation(1);
+  touch.setRotation(0);
   
   Serial.println("初始化完成");
   
@@ -59,11 +59,11 @@ void loop() {
   if (touch.touched()) {
     TS_Point p = touch.getPoint();
     
-    // 使用當前校準參數映射座標
-    int16_t mappedX = map(p.x, TS_MINX, TS_MAXX, 0, 320);
-    int16_t mappedY = map(p.y, TS_MINY, TS_MAXY, 0, 240);
-    mappedX = constrain(mappedX, 0, 319);
-    mappedY = constrain(mappedY, 0, 239);
+    // 使用當前校準參數映射座標 (直立模式 240x320)
+    int16_t mappedX = map(p.x, TS_MINX, TS_MAXX, 0, 240);
+    int16_t mappedY = map(p.y, TS_MINY, TS_MAXY, 0, 320);
+    mappedX = constrain(mappedX, 0, 239);
+    mappedY = constrain(mappedY, 0, 319);
     
     // 印出詳細資訊
     Serial.println("========================================");
@@ -89,40 +89,40 @@ void drawCalibrationMarkers() {
   // 標題
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(2);
-  tft.setCursor(40, 5);
-  tft.print("Touch Calibration");
+  tft.setCursor(20, 5);
+  tft.print("Touch Calib");
   
-  // 左上角 (10, 10)
+  // 左上角 (10, 30)
   tft.fillCircle(10, 30, markerSize, ILI9341_RED);
   tft.setTextSize(1);
   tft.setCursor(35, 25);
   tft.print("(10,30)");
   
-  // 右上角 (310, 10)
-  tft.fillCircle(310, 30, markerSize, ILI9341_GREEN);
-  tft.setCursor(250, 25);
-  tft.print("(310,30)");
+  // 右上角 (230, 30)
+  tft.fillCircle(230, 30, markerSize, ILI9341_GREEN);
+  tft.setCursor(170, 25);
+  tft.print("(230,30)");
   
-  // 左下角 (10, 230)
-  tft.fillCircle(10, 230, markerSize, ILI9341_BLUE);
-  tft.setCursor(35, 225);
-  tft.print("(10,230)");
+  // 左下角 (10, 310)
+  tft.fillCircle(10, 310, markerSize, ILI9341_BLUE);
+  tft.setCursor(35, 305);
+  tft.print("(10,310)");
   
-  // 右下角 (310, 230)
-  tft.fillCircle(310, 230, markerSize, ILI9341_YELLOW);
-  tft.setCursor(240, 225);
-  tft.print("(310,230)");
+  // 右下角 (230, 310)
+  tft.fillCircle(230, 310, markerSize, ILI9341_YELLOW);
+  tft.setCursor(165, 305);
+  tft.print("(230,310)");
   
-  // 中心 (160, 120)
-  tft.fillCircle(160, 120, markerSize, ILI9341_WHITE);
-  tft.setCursor(130, 145);
-  tft.print("(160,120)");
+  // 中心 (120, 160)
+  tft.fillCircle(120, 160, markerSize, ILI9341_WHITE);
+  tft.setCursor(90, 185);
+  tft.print("(120,160)");
   
   // 說明文字
   tft.setTextColor(ILI9341_CYAN);
   tft.setTextSize(1);
-  tft.setCursor(10, 210);
+  tft.setCursor(10, 280);
   tft.print("Touch each marker");
-  tft.setCursor(10, 220);
+  tft.setCursor(10, 290);
   tft.print("Check Serial Monitor");
 }

@@ -321,6 +321,109 @@ bool Screen::isButtonPressed(int16_t x, int16_t y,
 }
 
 // ========================================
+// 座標映射函數
+// ========================================
+
+void Screen::mapPoint0ToPhys(int16_t x0, int16_t y0, int16_t &xp, int16_t &yp) {
+  xp = y0;
+  yp = (LOG_W - 1) - x0;
+}
+
+void Screen::mapRect0ToPhys(int16_t x0, int16_t y0, int16_t w0, int16_t h0,
+                            int16_t &xp, int16_t &yp, int16_t &wp, int16_t &hp) {
+  int16_t x1 = x0;
+  int16_t y1 = y0;
+  int16_t x2 = x0 + w0 - 1;
+  int16_t y2 = y0 + h0 - 1;
+
+  int16_t p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y;
+  mapPoint0ToPhys(x1, y1, p1x, p1y);
+  mapPoint0ToPhys(x2, y1, p2x, p2y);
+  mapPoint0ToPhys(x1, y2, p3x, p3y);
+  mapPoint0ToPhys(x2, y2, p4x, p4y);
+
+  int16_t minX = min(min(p1x, p2x), min(p3x, p4x));
+  int16_t maxX = max(max(p1x, p2x), max(p3x, p4x));
+  int16_t minY = min(min(p1y, p2y), min(p3y, p4y));
+  int16_t maxY = max(max(p1y, p2y), max(p3y, p4y));
+
+  xp = minX;
+  yp = minY;
+  wp = maxX - minX + 1;
+  hp = maxY - minY + 1;
+}
+
+// ========================================
+// 「以 0 為基底」的繪圖 wrapper
+// ========================================
+
+void Screen::fillScreen0(uint16_t color) {
+  tft.fillScreen(color);
+}
+
+void Screen::setCursor0(int16_t x0, int16_t y0) {
+  int16_t xp, yp;
+  mapPoint0ToPhys(x0, y0, xp, yp);
+  tft.setCursor(xp, yp);
+}
+
+void Screen::fillRoundRect0(int16_t x0, int16_t y0, int16_t w0, int16_t h0, int16_t r, uint16_t color) {
+  int16_t xp, yp, wp, hp;
+  mapRect0ToPhys(x0, y0, w0, h0, xp, yp, wp, hp);
+  tft.fillRoundRect(xp, yp, wp, hp, r, color);
+}
+
+void Screen::drawRoundRect0(int16_t x0, int16_t y0, int16_t w0, int16_t h0, int16_t r, uint16_t color) {
+  int16_t xp, yp, wp, hp;
+  mapRect0ToPhys(x0, y0, w0, h0, xp, yp, wp, hp);
+  tft.drawRoundRect(xp, yp, wp, hp, r, color);
+}
+
+void Screen::drawButton0(int16_t x0, int16_t y0, int16_t w0, int16_t h0,
+                         uint16_t color, const String &text, bool pressed,
+                         uint8_t textSize) {
+  const int16_t r = 10;
+  uint16_t fill = pressed ? (color >> 2) : (color >> 3);
+
+  fillRoundRect0(x0, y0, w0, h0, r, fill);
+  drawRoundRect0(x0, y0, w0, h0, r, color);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(textSize);
+
+  // 內建字型每字 6x8
+  int16_t textW = text.length() * (6 * textSize);
+  int16_t textH = 8 * textSize;
+
+  int16_t tx0 = x0 + (w0 - textW) / 2;
+  int16_t ty0 = y0 + (h0 - textH) / 2;
+
+  setCursor0(tx0, ty0);
+  tft.print(text);
+}
+
+// ========================================
+// 更多顯示函數
+// ========================================
+
+void Screen::showWaitingForCard() {
+  fillScreen0(0x0000);
+  delay(10);
+
+  tft.setTextColor(0xFFFF);
+  tft.setTextSize(2);
+  setCursor0(20, 80);
+  tft.print("Enroll new card");
+
+  tft.setTextColor(0x07FF);
+  tft.setTextSize(3);
+  setCursor0(20, 140);
+  tft.print("RFID CARD");
+  
+  Serial.println("顯示：等待 RFID 卡片");
+}
+
+// ========================================
 // 校準測試
 // ========================================
 
