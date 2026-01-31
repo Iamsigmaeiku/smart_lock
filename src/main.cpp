@@ -7,6 +7,7 @@
 #include "huskylens.h"
 #include "wifi_comm.h"
 #include "password.h"
+#define DEBUG_TOUCH_DOT  1   // 改 0 就關掉畫點除錯
 
 uint32_t unlockStartMs = 0;
 bool isUnlocking = false;
@@ -71,66 +72,80 @@ void loop() {
 
   switch (currentState) {
 
-    case MENU: {
-      // 檢測觸控選擇驗證方式
-      if (display.isTouched()) {
-        int16_t x, y;
-        display.getTouchPoint(x, y);
-        
-        // 按鈕佈局 (使用 config.h 定義的常數，直立模式 240x320):
-        // 第一排: [指紋] [RFID]   (Y: 50-110)
-        // 第二排: [密碼] [人臉]   (Y: 120-180)
-        // 第三排: [註冊] [設定]   (Y: 190-250)
-        
-        // 第一排按鈕
-        if (y >= MENU_BTN_ROW1_Y && y <= MENU_BTN_ROW1_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 指紋按鈕
-            Serial.println("選擇：指紋驗證");
-            lastAuthMethod = FINGERPRINT;
-            currentState = WAITING_INPUT;
-            display.showWaitingForFinger();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // RFID按鈕
-            Serial.println("選擇：RFID驗證");
-            lastAuthMethod = RFID_CARD;
-            currentState = WAITING_INPUT;
-            display.showWaitingForCard();
-          }
-        }
-        // 第二排按鈕
-        else if (y >= MENU_BTN_ROW2_Y && y <= MENU_BTN_ROW2_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 密碼按鈕
-            Serial.println("選擇：密碼驗證");
-            lastAuthMethod = PASSWORD;
-            currentState = PASSWORD_INPUT;
-            display.showPasswordInput();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // 人臉按鈕
-            Serial.println("選擇：人臉驗證");
-            lastAuthMethod = FACE_RECOGNITION;
-            currentState = WAITING_INPUT;
-            display.showWaitingForFinger();  // 可以改成專門的人臉提示畫面
-          }
-        }
-        // 第三排按鈕 (註冊和設定)
-        else if (y >= MENU_BTN_ROW3_Y && y <= MENU_BTN_ROW3_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 註冊按鈕
-            Serial.println("選擇：註冊卡片");
-            currentState = ENROLLING;
-            display.showWaitingForCard();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // 設定按鈕
-            Serial.println("選擇：設定功能 (未實作)");
-          }
-        }
-        
-        delay(300);  // 防抖
+  case MENU: {
+  if (display.isTouched()) {
+    int16_t x, y;
+    display.getTouchPoint(x, y);
+
+#if DEBUG_TOUCH_DOT
+    // 在你「程式認為的座標」畫點，幫你確認對不對
+    display.display().fillCircle(x, y, 3, 0xFFFF);
+    Serial.printf("[MENU TOUCH] x=%d y=%d\n", x, y);
+    delay(80);
+#endif
+
+    // === 用 config.h 的座標，跟 Screen::showMainMenu() 畫的位置 100% 同步 ===
+    int pressed = -1;
+
+    // Row 1: Finger / RFID
+    if (display.isButtonPressed(x, y, MENU_BTN_LEFT_X,  MENU_BTN_ROW1_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT))  pressed = 0;
+    else if (display.isButtonPressed(x, y, MENU_BTN_RIGHT_X, MENU_BTN_ROW1_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT)) pressed = 1;
+
+    // Row 2: Password / Face
+    else if (display.isButtonPressed(x, y, MENU_BTN_LEFT_X,  MENU_BTN_ROW2_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT))  pressed = 2;
+    else if (display.isButtonPressed(x, y, MENU_BTN_RIGHT_X, MENU_BTN_ROW2_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT)) pressed = 3;
+
+    // Row 3: Enroll / Setting
+    else if (display.isButtonPressed(x, y, MENU_BTN_LEFT_X,  MENU_BTN_ROW3_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT))  pressed = 4;
+    else if (display.isButtonPressed(x, y, MENU_BTN_RIGHT_X, MENU_BTN_ROW3_Y, MENU_BTN_WIDTH, MENU_BTN_HEIGHT)) pressed = 5;
+
+    if (pressed != -1) {
+      switch (pressed) {
+        case 0: // Finger
+          Serial.println("選擇：指紋驗證");
+          lastAuthMethod = FINGERPRINT;
+          currentState = WAITING_INPUT;
+          display.showWaitingForFinger();
+          break;
+
+        case 1: // RFID
+          Serial.println("選擇：RFID驗證");
+          lastAuthMethod = RFID_CARD;
+          currentState = WAITING_INPUT;
+          display.showWaitingForCard();
+          break;
+
+        case 2: // Password
+          Serial.println("選擇：密碼驗證");
+          lastAuthMethod = PASSWORD;
+          currentState = PASSWORD_INPUT;
+          display.showPasswordInput();
+          break;
+
+        case 3: // Face
+          Serial.println("選擇：人臉驗證");
+          lastAuthMethod = FACE_RECOGNITION;
+          currentState = WAITING_INPUT;
+          display.showWaitingForFinger(); // 你可改 showWaitingForFace()
+          break;
+
+        case 4: // Enroll
+          Serial.println("選擇：註冊卡片");
+          currentState = ENROLLING;
+          display.showWaitingForCard();
+          break;
+
+        case 5: // Setting
+          Serial.println("選擇：Setting（未實作）");
+          break;
       }
-      break;
+
+      delay(300); // 防連點
     }
+  }
+  break;
+}
+
 
     case WAITING_INPUT:
       if (fingerSensor.detectFinger()) {
