@@ -20,13 +20,19 @@
 #define TFT_SCLK 18   // Clock
 #define TFT_MISO 19   // Master In Slave Out (選用)
 
-// RFID RC522 接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
-#define RFID_CS   4   // Chip Select (SDA)
-#define RFID_RST  27  // Reset
-
 // XPT2046 觸控接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
 #define TOUCH_CS   15   // 觸控晶片選擇
 #define TOUCH_IRQ  2    // 觸控中斷（可選）
+
+
+// RFID RC522 接腳（獨立 SPI，與螢幕不同）
+#define RFID_CS   22   // SDA (Chip Select)
+#define RFID_SCLK 19   // CLK (Serial Clock)
+#define RFID_MOSI 23   // MOSI (Master Out Slave In)
+#define RFID_MISO 25   // MISO (Master In Slave Out)
+#define RFID_RST  UINT8_MAX  // RST 接 3.3V（不使用軟體控制）  
+
+
 
 // 觸控校準參數（需根據實際硬體調整）
 #define TS_MINX 400
