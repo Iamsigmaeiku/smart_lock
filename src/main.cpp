@@ -248,9 +248,7 @@ void loop() {
         currentState = MENU;
         display.showMainMenu();
       }
-      break;
-
-    default:
+      break;    default:
       break;
   }
 }
