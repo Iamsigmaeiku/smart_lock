@@ -12,32 +12,27 @@
 #define FINGERPRINT_RX 16  // ESP32 RX <- AS608 TX
 #define FINGERPRINT_TX 17  // ESP32 TX -> AS608 RX
 
-// See SetupX_Template.h for all options available
-
-
-#define LOAD_GLCD    // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
-#define LOAD_FONT2   // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
-#define LOAD_FONT4   // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters
-#define LOAD_FONT6   // Font 6. Large 48 pixel font, needs ~2666 bytes in FLASH, only characters 1234567890:-.apm
-#define LOAD_FONT7   // Font 7. 7 segment 48 pixel font, needs ~2438 bytes in FLASH, only characters 1234567890:.
-#define LOAD_FONT8   // Font 8. Large 75 pixel font needs ~3256 bytes in FLASH, only characters 1234567890:-.
-#define LOAD_GFXFF   // FreeFonts. Include access to the 48 Adafruit_GFX free fonts FF1 to FF48 and custom fonts
-
-#define SMOOTH_FONT
-
-// TFT SPI clock frequency
+// ILI9341 螢幕接腳 (SPI)
+#define TFT_CS   5    // Chip Select
+#define TFT_RST  22   // Reset
+#define TFT_DC   21   // Data/Command
+#define TFT_MOSI 23   // Master Out Slave In
+#define TFT_SCLK 18   // Clock
+#define TFT_MISO 19   // Master In Slave Out (選用)
 
 // RFID RC522 接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
 #define RFID_CS   4   // Chip Select (SDA)
 #define RFID_RST  27  // Reset
 
-
+// XPT2046 觸控接腳 (SPI - 與螢幕共用 MOSI/MISO/SCLK)
+#define TOUCH_CS   15   // 觸控晶片選擇
+#define TOUCH_IRQ  36    // 觸控中斷（可選）
 
 // 觸控校準參數（需根據實際硬體調整）
-#define TS_MINX 380
-#define TS_MAXX 3680
-#define TS_MINY 340
-#define TS_MAXY 3740
+#define TS_MINX 300
+#define TS_MAXX 3800
+#define TS_MINY 400
+#define TS_MAXY 3750
 
 // HUSKYLENS AI 辨識鏡頭接腳 (I2C)
 #define HUSKYLENS_SDA 21  // I2C 資料線

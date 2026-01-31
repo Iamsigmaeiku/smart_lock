@@ -72,62 +72,80 @@ void loop() {
   switch (currentState) {
 
     case MENU: {
-      // 檢測觸控選擇驗證方式
       if (display.isTouched()) {
         int16_t x, y;
         display.getTouchPoint(x, y);
-        
-        // 按鈕佈局 (使用 config.h 定義的常數，直立模式 240x320):
-        // 第一排: [指紋] [RFID]   (Y: 50-110)
-        // 第二排: [密碼] [人臉]   (Y: 120-180)
-        // 第三排: [註冊] [設定]   (Y: 190-250)
-        
-        // 第一排按鈕
-        if (y >= MENU_BTN_ROW1_Y && y <= MENU_BTN_ROW1_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 指紋按鈕
-            Serial.println("選擇：指紋驗證");
-            lastAuthMethod = FINGERPRINT;
-            currentState = WAITING_INPUT;
-            display.showWaitingForFinger();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // RFID按鈕
-            Serial.println("選擇：RFID驗證");
-            lastAuthMethod = RFID_CARD;
-            currentState = WAITING_INPUT;
-            display.showWaitingForCard();
+
+        // === 반드시 Screen::showMainMenu() 同步（rotation=3 時 W=320 H=240）===
+        const int16_t W = 320;
+        const int16_t H = 240;
+
+        const int16_t cols = 3, rows = 2;
+        const int16_t marginX = 10;
+        const int16_t gapX = 10;
+        const int16_t gapY = 12;
+
+        const int16_t topY = 40;
+        const int16_t bottomMargin = 10;
+
+        int16_t btnW = (W - 2 * marginX - (cols - 1) * gapX) / cols;
+        int16_t btnH = (H - topY - bottomMargin - (rows - 1) * gapY) / rows;
+
+        int pressed = -1;
+        for (int r = 0; r < rows; r++) {
+          for (int c = 0; c < cols; c++) {
+            int16_t bx = marginX + c * (btnW + gapX);
+            int16_t by = topY    + r * (btnH + gapY);
+
+            if (x >= bx && x <= bx + btnW && y >= by && y <= by + btnH) {
+              pressed = r * cols + c; // 0..5
+            }
           }
         }
-        // 第二排按鈕
-        else if (y >= MENU_BTN_ROW2_Y && y <= MENU_BTN_ROW2_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 密碼按鈕
-            Serial.println("選擇：密碼驗證");
-            lastAuthMethod = PASSWORD;
-            currentState = PASSWORD_INPUT;
-            display.showPasswordInput();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // 人臉按鈕
-            Serial.println("選擇：人臉驗證");
-            lastAuthMethod = FACE_RECOGNITION;
-            currentState = WAITING_INPUT;
-            display.showWaitingForFinger();  // 可以改成專門的人臉提示畫面
+
+        if (pressed != -1) {
+          switch (pressed) {
+            case 0: // Finger
+              Serial.println("選擇：指紋驗證");
+              lastAuthMethod = FINGERPRINT;
+              currentState = WAITING_INPUT;
+              display.showWaitingForFinger();
+              break;
+
+            case 1: // RFID
+              Serial.println("選擇：RFID驗證");
+              lastAuthMethod = RFID_CARD;
+              currentState = WAITING_INPUT;
+              display.showWaitingForCard();
+              break;
+
+            case 2: // Password
+              Serial.println("選擇：密碼驗證");
+              lastAuthMethod = PASSWORD;
+              currentState = PASSWORD_INPUT;
+              display.showPasswordInput();
+              break;
+
+            case 3: // Face
+              Serial.println("選擇：人臉驗證");
+              lastAuthMethod = FACE_RECOGNITION;
+              currentState = WAITING_INPUT;
+              display.showWaitingForFinger(); // 你可改 showWaitingForFace()
+              break;
+
+            case 4: // Enroll
+              Serial.println("選擇：註冊卡片");
+              currentState = ENROLLING;
+              display.showWaitingForCard();
+              break;
+
+            case 5: // Setting
+              Serial.println("選擇：Setting（未實作）");
+              break;
           }
+
+          delay(300);
         }
-        // 第三排按鈕 (註冊和設定)
-        else if (y >= MENU_BTN_ROW3_Y && y <= MENU_BTN_ROW3_Y + MENU_BTN_HEIGHT) {
-          if (x >= MENU_BTN_LEFT_X && x <= MENU_BTN_LEFT_X + MENU_BTN_WIDTH) {
-            // 註冊按鈕
-            Serial.println("選擇：註冊卡片");
-            currentState = ENROLLING;
-            display.showWaitingForCard();
-          } else if (x >= MENU_BTN_RIGHT_X && x <= MENU_BTN_RIGHT_X + MENU_BTN_WIDTH) {
-            // 設定按鈕
-            Serial.println("選擇：設定功能 (未實作)");
-          }
-        }
-        
-        delay(300);  // 防抖
       }
       break;
     }
@@ -248,7 +266,9 @@ void loop() {
         currentState = MENU;
         display.showMainMenu();
       }
-      break;    default:
+      break;
+
+    default:
       break;
   }
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include <Arduino.h>
-#include <TFT_eSPI.h>
-#include "config.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
 #include <XPT2046_Touchscreen.h>
+#include "config.h"
 
 class Screen {
 public:
@@ -10,14 +11,12 @@ public:
 
   void init();
   void initTouch();
-struct Rect { int16_t x, y, w, h; };
-Rect getMenuButtonRect(uint8_t index); // 0..5
+
   void showWelcome();
   void showWaitingForFinger();
   void showWaitingForCard();
   void showSuccess();
   void showFailed();
-  TFT_eSPI& display() { return tft; }  // ← 加這行
 
   // 觸控相關
   bool isTouched();                                   // 檢測是否被觸摸
@@ -32,15 +31,15 @@ Rect getMenuButtonRect(uint8_t index); // 0..5
 
   // 校準測試
   void showCalibrationMarkers();                      // 顯示校準標記點
-
+  
   // 輔助函數
-  bool isButtonPressed(int16_t x, int16_t y, int16_t btnX, int16_t btnY,
+  bool isButtonPressed(int16_t x, int16_t y, int16_t btnX, int16_t btnY, 
                        int16_t btnW, int16_t btnH);   // 判斷是否按中按鈕
-  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h,
+  void drawButton(int16_t x, int16_t y, int16_t w, int16_t h, 
                   uint16_t color, const char* label, uint8_t textSize);
 
 private:
-  TFT_eSPI tft;
+  Adafruit_ILI9341 tft;
   XPT2046_Touchscreen ts;
 
   // ===== 你「以 0 為基底」的邏輯尺寸 =====
