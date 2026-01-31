@@ -5,6 +5,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
+#include <XPT2046_Touchscreen.h>
 #include "config.h"
 
 class Screen {
@@ -14,10 +15,12 @@ public:
 
   void showWelcome();
   void showWaitingForFinger();
+  void showWaitingForCard();
   void showSuccess();
   void showFailed();
   
   // 觸控相關
+  void initTouch();                                   // 初始化觸控
   bool isTouched();                                   // 檢測是否被觸摸
   void getTouchPoint(int16_t &x, int16_t &y);         // 獲取觸摸座標（已映射到螢幕像素）
   void printTouchDebug();                             // 調試用：印出觸摸座標
@@ -33,6 +36,7 @@ public:
 
 private:
   Adafruit_ILI9341 tft;
+  XPT2046_Touchscreen touch;
 };
 
 #endif
